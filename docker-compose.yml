@@ -1,0 +1,35 @@
+version: '3'
+services:
+  text-analyzer-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      - text-analyzer-api-net
+    ports:
+      - '8080:8080'
+    environment:
+      - DB_URL=jdbc:postgresql://text-analyzer-api-db:5432/text-analyzer-app
+    depends_on:
+      - text-analyzer-api-db
+    logging:
+      driver: json-file
+    restart: always
+  text-analyzer-api-db:
+    image: postgres:latest
+    networks:
+      - text-analyzer-api-net
+    ports:
+      - '5433:5432'
+    environment:
+      - POSTGRES_DB=text-analyzer-app
+      - POSTGRES_USER=notroot
+      - POSTGRES_PASSWORD=theroot6
+    volumes:
+      - text-analyzer-api-db-vol:/var/lib/postgresql
+    restart: always
+networks:
+  text-analyzer-api-net:
+    driver: bridge
+volumes:
+  text-analyzer-api-db-vol:
