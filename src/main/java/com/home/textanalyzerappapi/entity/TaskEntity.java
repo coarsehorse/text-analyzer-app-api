@@ -30,6 +30,7 @@ public class TaskEntity {
     private String filePath;
 
     @NotNull
+    @Enumerated(EnumType.STRING)
     private TaskStatus status;
 
     @CreatedDate

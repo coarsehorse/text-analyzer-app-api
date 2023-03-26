@@ -10,9 +10,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.home.textanalyzerappapi.util.Utils.checkNotNull;
@@ -38,15 +40,15 @@ public class FileService {
 
     private Boolean isSupportedFile(MultipartFile file) {
         checkNotNull(file, "file");
-        var extension = getFileExtension(file);
+        String extension = getFileExtension(file);
         return SUPPORTED_EXTENSIONS.contains(extension);
     }
 
     protected String getFileExtension(MultipartFile file) {
-        var fileName = extractSafely(file::getOriginalFilename);
+        String fileName = extractSafely(file::getOriginalFilename);
         checkNotNull(fileName, "fileName");
 
-        var tokens = fileName.split("\\.");
+        String[] tokens = fileName.split("\\.");
         return tokens[tokens.length - 1];
     }
 
@@ -64,11 +66,11 @@ public class FileService {
         }
         do {
             var filenameParts = extractFilenameCounterExtension(filename);
-            var clearName = filenameParts._1;
-            var fileCounter = filenameParts._2;
-            var extension = filenameParts._3;
+            String clearName = filenameParts._1;
+            Integer fileCounter = filenameParts._2;
+            String extension = filenameParts._3;
 
-            var newCounter = Option.of(fileCounter)
+            Integer newCounter = Option.of(fileCounter)
                     .map(x -> x + 1)
                     .getOrElse(0);
 
@@ -79,29 +81,29 @@ public class FileService {
     }
 
     private Boolean fileExists(String filename) {
-        var file = Path.of(STORAGE_PATH, filename).toFile();
+        File file = Path.of(STORAGE_PATH, filename).toFile();
         return file.isFile() || file.isDirectory();
     }
 
     private Tuple3<String, Integer, String> extractFilenameCounterExtension(String filename) {
-        var nameMatcher = FILENAME_PATTERN.matcher(filename);
+        Matcher nameMatcher = FILENAME_PATTERN.matcher(filename);
         if (!nameMatcher.matches()) {
             throw new RuntimeException(
                     "Name \"%s\" doesn't match the pattern".formatted(filename));
         }
-        var clearName = nameMatcher.group(1);
-        var fileCounter = Option.of(nameMatcher.group(2))
+        String clearName = nameMatcher.group(1);
+        Integer fileCounter = Option.of(nameMatcher.group(2))
                 .map(counterStr -> counterStr.replaceAll("_", ""))
                 .map(Integer::valueOf)
                 .getOrNull();
-        var extension = nameMatcher.group(3);
+        String extension = nameMatcher.group(3);
 
         return Tuple.of(clearName, fileCounter, extension);
     }
 
     @SneakyThrows
     private void createStorageDirectoryIfNotExists() {
-        var path = Path.of(STORAGE_PATH);
+        Path path = Path.of(STORAGE_PATH);
 
         if (path.toFile().isDirectory()) {
             return;
@@ -123,9 +125,9 @@ public class FileService {
         }
         createStorageDirectoryIfNotExists();
 
-        var normalizedFilename = normalizeFilename(file.getOriginalFilename());
-        var uniqueFilename = generateUniqueFilename(normalizedFilename);
-        var filePath = Path.of(STORAGE_PATH, uniqueFilename);
+        String normalizedFilename = normalizeFilename(file.getOriginalFilename());
+        String uniqueFilename = generateUniqueFilename(normalizedFilename);
+        Path filePath = Path.of(STORAGE_PATH, uniqueFilename);
 
         return Files.write(filePath, file.getBytes(), CREATE, WRITE);
     }

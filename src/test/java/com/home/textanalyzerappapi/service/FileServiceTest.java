@@ -31,7 +31,7 @@ public class FileServiceTest {
     void testGetFileExtension(String filename, String expectedExtension) {
         var multipartFile = new MockMultipartFile("file",
                 filename, "text/plain", "Hello".getBytes());
-        var extension = fileService.getFileExtension(multipartFile);
+        String extension = fileService.getFileExtension(multipartFile);
         assertEquals(extension, expectedExtension);
     }
 }
